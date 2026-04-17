@@ -1,4 +1,5 @@
-import { SHIFTS } from './config.js';
+import { SHIFTS, SHIFT_TIMEZONE } from './config.js';
+import type { TimeOfDay } from './config.js';
 import type { ShiftState } from './store.js';
 
 type SlotKey = Exclude<keyof ShiftState, 'reserve'>;
@@ -11,22 +12,55 @@ function slotKey(id: number, slot: 'main' | 'secondary'): SlotKey {
   return `shift${id}_${slot}` as SlotKey;
 }
 
-export function buildEmbed(state: ShiftState): Record<string, unknown> {
-  const headerLines = SHIFTS.map((s) => {
-    const left = `Shift ${s.id} - ${s.label}`;
-    return `${left.padEnd(48)}( ${s.timing} )`;
-  });
-  const header = '```\n' + headerLines.join('\n') + '\n```';
+function unixTimestampTodayAt(t: TimeOfDay, timeZone: string): number {
+  const now = new Date();
+  const ymd = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
+  const hhmm = `${String(t.hour).padStart(2, '0')}:${String(t.minute).padStart(2, '0')}`;
+  const guessMs = Date.parse(`${ymd}T${hhmm}:00Z`);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(new Date(guessMs));
+  const part = (type: string): number =>
+    Number(parts.find((p) => p.type === type)!.value);
+  const asIfUtc = Date.UTC(
+    part('year'),
+    part('month') - 1,
+    part('day'),
+    part('hour'),
+    part('minute'),
+    part('second'),
+  );
+  const offsetMs = asIfUtc - guessMs;
+  return Math.floor((guessMs - offsetMs) / 1000);
+}
 
+function discordTime(t: TimeOfDay): string {
+  return `<t:${unixTimestampTodayAt(t, SHIFT_TIMEZONE)}:t>`;
+}
+
+export function buildEmbed(state: ShiftState): Record<string, unknown> {
   const shiftBlocks = SHIFTS.map((s) => {
     const main = state[slotKey(s.id, 'main')];
     const sec = state[slotKey(s.id, 'secondary')];
+    const end = s.end ? discordTime(s.end) : 'End';
     return [
-      `**Shift ${s.id}**`,
+      `**Shift ${s.id} - ${s.label}** (${discordTime(s.start)} \u2192 ${end})`,
       `\u2003\u2003Main Officer = ${mention(main)}`,
       `\u2003\u2003Secondary Officer = ${mention(sec)}`,
     ].join('\n');
-  }).join('\n');
+  }).join('\n\n');
 
   const reserveList =
     state.reserve.length === 0
@@ -34,7 +68,6 @@ export function buildEmbed(state: ShiftState): Record<string, unknown> {
       : state.reserve.map((id) => `<@${id}>`).join(', ');
 
   const description = [
-    header,
     shiftBlocks,
     '',
     `**Reserve officers:** ${reserveList}`,
