@@ -9,11 +9,10 @@ import { handleButton, handleCommand } from './shift/interactions.js';
 
 const PUBLIC_KEY = process.env['DISCORD_PUBLIC_KEY'];
 if (!PUBLIC_KEY) {
-  console.error('DISCORD_PUBLIC_KEY is required in .env');
-  process.exit(1);
+  throw new Error('DISCORD_PUBLIC_KEY is required');
 }
 
-const app = express();
+export const app = express();
 
 app.post(
   '/interactions',
@@ -52,7 +51,7 @@ app.post(
     }
 
     if (body.type === InteractionType.MESSAGE_COMPONENT) {
-      res.json(handleButton(body));
+      res.json(await handleButton(body));
       return;
     }
 
@@ -64,7 +63,9 @@ app.get('/', (_req, res) => {
   res.send('shift-bot ok');
 });
 
-const PORT = Number(process.env['PORT']) || 3000;
-app.listen(PORT, () => {
-  console.log(`listening on :${PORT}`);
-});
+if (!process.env['AWS_LAMBDA_FUNCTION_NAME']) {
+  const PORT = Number(process.env['PORT']) || 3000;
+  app.listen(PORT, () => {
+    console.log(`listening on :${PORT}`);
+  });
+}

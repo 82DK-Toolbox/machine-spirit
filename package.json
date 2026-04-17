@@ -6,21 +6,27 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "register": "tsx src/register.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build": "node scripts/build.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.161",
     "@types/express": "^5.0.6",
     "@types/node": "^25.6.0",
+    "esbuild": "^0.28.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1031.0",
+    "@aws-sdk/lib-dynamodb": "^3.1031.0",
     "discord-interactions": "^4.4.0",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "serverless-http": "^4.0.0"
   }
 }
