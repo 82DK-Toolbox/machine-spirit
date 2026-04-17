@@ -64,7 +64,7 @@ export function handleCommand(): Record<string, unknown> {
 interface ButtonInteraction {
   data: { custom_id: string };
   message: { id: string };
-  member?: { user: { id: string } };
+  member?: { user: { id: string }; roles: string[] };
   user?: { id: string };
 }
 
@@ -72,6 +72,10 @@ export function handleButton(body: ButtonInteraction): Record<string, unknown> {
   const customId = body.data.custom_id;
   const userId = body.member?.user.id ?? body.user?.id;
   if (!userId) return ephemeral('Could not identify user.');
+
+  if (!body.member?.roles?.includes(OFFICER_ROLE_ID)) {
+    return ephemeral('Only officers can use these buttons.');
+  }
 
   const messageId = body.message.id;
   const state = getState(messageId);
