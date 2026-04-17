@@ -68,19 +68,21 @@ interface ButtonInteraction {
   user?: { id: string };
 }
 
-export function handleButton(body: ButtonInteraction): Record<string, unknown> {
+export async function handleButton(
+  body: ButtonInteraction,
+): Promise<Record<string, unknown>> {
   const customId = body.data.custom_id;
   const userId = body.member?.user.id ?? body.user?.id;
   if (!userId) return ephemeral('Could not identify user.');
 
   const messageId = body.message.id;
-  const state = getState(messageId);
+  const state = await getState(messageId);
 
   if (customId === 'r') {
     const idx = state.reserve.indexOf(userId);
     if (idx >= 0) state.reserve.splice(idx, 1);
     else state.reserve.push(userId);
-    setState(messageId, state);
+    await setState(messageId, state);
     return rerender(state, true);
   }
 
@@ -101,6 +103,6 @@ export function handleButton(body: ButtonInteraction): Record<string, unknown> {
   } else {
     state[slot] = userId;
   }
-  setState(messageId, state);
+  await setState(messageId, state);
   return rerender(state, true);
 }

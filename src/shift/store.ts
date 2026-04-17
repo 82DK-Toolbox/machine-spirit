@@ -1,5 +1,9 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+} from '@aws-sdk/lib-dynamodb';
 
 export interface ShiftState {
   shift1_main: string | null;
@@ -12,29 +16,12 @@ export interface ShiftState {
   reserve: string[];
 }
 
-type Store = Record<string, ShiftState>;
-
-const DATA_DIR = path.join(process.cwd(), 'data');
-const DATA_FILE = path.join(DATA_DIR, 'shifts.json');
-
-function ensureDir(): void {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+const TABLE_NAME = process.env['DYNAMO_TABLE'];
+if (!TABLE_NAME) {
+  throw new Error('DYNAMO_TABLE env var is required');
 }
 
-function load(): Store {
-  ensureDir();
-  if (!fs.existsSync(DATA_FILE)) return {};
-  try {
-    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) as Store;
-  } catch {
-    return {};
-  }
-}
-
-function save(store: Store): void {
-  ensureDir();
-  fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2));
-}
+const client = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 export function emptyState(): ShiftState {
   return {
@@ -49,13 +36,24 @@ export function emptyState(): ShiftState {
   };
 }
 
-export function getState(messageId: string): ShiftState {
-  const store = load();
-  return store[messageId] ?? emptyState();
+export async function getState(messageId: string): Promise<ShiftState> {
+  const res = await client.send(
+    new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { messageId },
+    }),
+  );
+  return (res.Item?.['state'] as ShiftState | undefined) ?? emptyState();
 }
 
-export function setState(messageId: string, state: ShiftState): void {
-  const store = load();
-  store[messageId] = state;
-  save(store);
+export async function setState(
+  messageId: string,
+  state: ShiftState,
+): Promise<void> {
+  await client.send(
+    new PutCommand({
+      TableName: TABLE_NAME,
+      Item: { messageId, state },
+    }),
+  );
 }
