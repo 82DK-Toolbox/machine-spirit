@@ -1,4 +1,4 @@
-# Shift Bot
+# Machine Spirit Bot
 
 A Discord bot that posts a shift sign-up panel. Users click buttons to claim officer slots, toggle reserve status, or take a Tank Squire role. Assignments persist across restarts.
 
