@@ -16,12 +16,12 @@ export async function fetchMembersWithRoles(
     console.warn('DISCORD_BOT_TOKEN missing, cannot fetch guild members');
     return [];
   }
-
   const url = `${DISCORD_API}/guilds/${guildId}/members?limit=1000`;
   const res = await fetch(url, {
     headers: { Authorization: `Bot ${token}` },
   });
   if (!res.ok) {
+    console.log('Res response:', {res})
     console.warn('failed to fetch guild members', { status: res.status });
     return [];
   }
