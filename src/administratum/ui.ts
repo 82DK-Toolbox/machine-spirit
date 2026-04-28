@@ -7,7 +7,7 @@ function mention(id: string | null): string {
 }
 
 function dutyBlock(duty: DutyDef, state: AdministratumState): string {
-  const lines = [`**${duty.label}** = ${mention(state[duty.key])}`];
+  const lines = [`${duty.emote} **${duty.label}** = ${mention(state[duty.key])}`];
   for (const r of duty.responsibilities) {
     lines.push(`  • ${r}`);
   }

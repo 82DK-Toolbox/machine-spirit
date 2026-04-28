@@ -12,6 +12,7 @@ export interface DutyDef {
   key: DutyKey;
   customId: string;
   label: string;
+  emote: string;
   category: DutyCategory;
   responsibilities: string[];
 }
@@ -21,6 +22,7 @@ export const DUTIES: readonly DutyDef[] = [
     key: 'tankmaster',
     customId: 'a:tm',
     label: 'Tankmaster',
+    emote: ':Armoured~1:',
     category: 'weekly',
     responsibilities: ['Sets MPF queues', 'Runs upgrade patrol for OP'],
   },
@@ -28,6 +30,7 @@ export const DUTIES: readonly DutyDef[] = [
     key: 'company_scribe',
     customId: 'a:cs',
     label: 'Company Scribe',
+    emote: ':scroll:',
     category: 'weekly',
     responsibilities: [
       'Prepares Log List',
@@ -41,6 +44,7 @@ export const DUTIES: readonly DutyDef[] = [
     key: 'manufactorum_master',
     customId: 'a:mm',
     label: 'Manufactorum Master',
+    emote: ':Machine_spirit:',
     category: 'weekly',
     responsibilities: [
       'Cooks Ammo for OP',
@@ -52,6 +56,7 @@ export const DUTIES: readonly DutyDef[] = [
     key: 'guardsmen_engagement_officer',
     customId: 'a:geo',
     label: 'Guardsmen Engagement Officer',
+    emote: ':partying_face:',
     category: 'weekly',
     responsibilities: [
       'Leads a midweek Armor patrol',
@@ -62,6 +67,7 @@ export const DUTIES: readonly DutyDef[] = [
     key: 'facility_team_liason',
     customId: 'a:ftl',
     label: 'Facility Team Liason',
+    emote: ':factory:',
     category: 'war_long',
     responsibilities: [],
   },
@@ -69,6 +75,7 @@ export const DUTIES: readonly DutyDef[] = [
     key: 'ar_base_overseer',
     customId: 'a:abo',
     label: 'AR Base Overseer',
+    emote: ':european_castle:',
     category: 'war_long',
     responsibilities: [],
   },
