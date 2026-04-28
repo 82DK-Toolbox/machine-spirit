@@ -6,7 +6,7 @@ import { emptyState, getState, setState } from './store.js';
 import type { AdministratumState } from './store.js';
 import { DUTIES } from './duties.js';
 import type { DutyDef } from './duties.js';
-import { buildComponents, buildEmbed, buildPlainText } from './ui.js';
+import { buildComponents, buildEmbed } from './ui.js';
 import { OFFICER_ROLE_ID } from '../config.js';
 
 const DUTY_BY_CUSTOM_ID: Record<string, DutyDef> = Object.fromEntries(
@@ -67,12 +67,6 @@ export async function handleButton(
 
   const messageId = body.message.id;
   const state = await getState(messageId);
-
-  if (customId === 'a:fin') {
-    return ephemeral(
-      `Copy the text below and paste it wherever you want to share the sign-up:\n\`\`\`\n${buildPlainText(state)}\n\`\`\``,
-    );
-  }
 
   const duty = DUTY_BY_CUSTOM_ID[customId];
   if (!duty) return ephemeral('Unknown button.');

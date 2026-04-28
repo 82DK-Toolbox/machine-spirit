@@ -43,13 +43,6 @@ export function buildEmbed(state: AdministratumState): Record<string, unknown> {
   };
 }
 
-export function buildPlainText(state: AdministratumState): string {
-  return [
-    '# **DUTY ASSIGNMENTS FOR THE COMING WEEK**',
-    buildDescription(state, false),
-  ].join('\n\n');
-}
-
 interface Component {
   type: number;
   style?: number;
@@ -76,7 +69,5 @@ function chunk<T>(items: T[], size: number): T[][] {
 
 export function buildComponents(): Component[] {
   const buttons = DUTIES.map((d) => btn(d.customId, d.label));
-  const rows = chunk(buttons, 2).map((r) => row(r));
-  rows.push(row([btn('a:fin', 'Finalize Sign-Up', 2)]));
-  return rows;
+  return chunk(buttons, 2).map((r) => row(r));
 }

@@ -209,18 +209,7 @@ describe('handleButton - duty claim/release', () => {
   });
 });
 
-describe('handleButton - finalize and unknown', () => {
-  it('finalize returns an ephemeral plaintext block', async () => {
-    const res = (await handleButton({
-      data: { custom_id: 'a:fin' },
-      message: { id: 'm1' },
-      ...officer('u1'),
-    })) as ResponseShape;
-    expect(res.data?.flags).toBe(InteractionResponseFlags.EPHEMERAL);
-    expect(res.data?.content).toMatch(/Copy the text/i);
-    expect(res.data?.content).toContain('```');
-  });
-
+describe('handleButton - unknown', () => {
   it('rejects unknown custom_id', async () => {
     const res = (await handleButton({
       data: { custom_id: 'a:not-real' },
