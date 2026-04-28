@@ -18,6 +18,9 @@ export const OFFICER_ROLE_ID =
 export const SHIFT_CHANNEL_ID =
   process.env['SHIFT_CHANNEL_ID'] ?? '1494671599561998486';
 
+export const FACILITY_TEAM_ROLE_ID =
+  process.env['FACILITY_TEAM_ROLE_ID'] ?? '1498520759310618665';
+
 export const SHIFTS: readonly ShiftDef[] = [
   {
     id: 1,
