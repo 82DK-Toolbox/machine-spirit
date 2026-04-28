@@ -2,12 +2,13 @@ import {
   InteractionResponseType,
   InteractionResponseFlags,
 } from 'discord-interactions';
-import { emptyState, getState, setState } from './store.js';
+import { emptyState, getStoredState, setState } from './store.js';
 import type { AdministratumState } from './store.js';
 import { DUTIES } from './duties.js';
 import type { DutyDef } from './duties.js';
 import { buildComponents, buildEmbed } from './ui.js';
 import { OFFICER_ROLE_ID, FACILITY_TEAM_ROLE_ID } from '../config.js';
+import { fetchMembersWithRoles } from '../util/discord.js';
 
 const DUTY_BY_CUSTOM_ID: Record<string, DutyDef> = Object.fromEntries(
   DUTIES.map((d) => [d.customId, d]),
@@ -35,12 +36,34 @@ function rerender(state: AdministratumState): Record<string, unknown> {
   };
 }
 
-export function handleCommand(): Record<string, unknown> {
+async function autoAssignedFtl(
+  guildId: string | undefined,
+): Promise<string | null> {
+  if (!guildId) return null;
+  const candidates: string[] = await fetchMembersWithRoles(guildId, [
+    OFFICER_ROLE_ID,
+    FACILITY_TEAM_ROLE_ID,
+  ]);
+  return candidates[0] ?? null;
+}
+
+async function buildSeededState(
+  guildId: string | undefined,
+): Promise<AdministratumState> {
+  const state = emptyState();
+  state.facility_team_liason = await autoAssignedFtl(guildId);
+  return state;
+}
+
+export async function handleCommand(
+  guildId: string | undefined,
+): Promise<Record<string, unknown>> {
+  const state = await buildSeededState(guildId);
   return {
     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
     data: {
       content: `<@&${OFFICER_ROLE_ID}>`,
-      embeds: [buildEmbed(emptyState())],
+      embeds: [buildEmbed(state)],
       components: buildComponents(),
       allowed_mentions: { roles: [OFFICER_ROLE_ID] },
     },
@@ -52,6 +75,7 @@ interface ButtonInteraction {
   message: { id: string };
   member?: { user: { id: string }; roles: string[] };
   user?: { id: string };
+  guild_id?: string;
 }
 
 export async function handleButton(
@@ -66,7 +90,10 @@ export async function handleButton(
   }
 
   const messageId = body.message.id;
-  const state = await getState(messageId);
+  const stored = await getStoredState(messageId);
+  const state: AdministratumState = stored
+    ? { ...emptyState(), ...stored }
+    : await buildSeededState(body.guild_id);
 
   const duty = DUTY_BY_CUSTOM_ID[customId];
   if (!duty) return ephemeral('Unknown button.');

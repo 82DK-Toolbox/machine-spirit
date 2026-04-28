@@ -99,16 +99,18 @@ describe('POST /interactions - dispatch', () => {
     expect(mocks.handleCommand).toHaveBeenCalledWith('1494671599561998486');
   });
 
-  it('routes /administratum APPLICATION_COMMAND to handleAdministratumCommand', async () => {
+  it('routes /administratum APPLICATION_COMMAND to handleAdministratumCommand with guild_id', async () => {
     const stub = { type: 4, data: { content: 'admin-response' } };
-    mocks.handleAdministratumCommand.mockReturnValue(stub);
+    mocks.handleAdministratumCommand.mockResolvedValue(stub);
     const res = await postInteraction({
       type: InteractionType.APPLICATION_COMMAND,
       data: { name: 'administratum' },
+      guild_id: 'g1',
     });
     expect(res.status).toBe(200);
     expect(res.body).toEqual(stub);
     expect(mocks.handleAdministratumCommand).toHaveBeenCalledOnce();
+    expect(mocks.handleAdministratumCommand).toHaveBeenCalledWith('g1');
     expect(mocks.handleCommand).not.toHaveBeenCalled();
   });
 
