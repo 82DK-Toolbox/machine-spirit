@@ -7,7 +7,7 @@ import type { AdministratumState } from './store.js';
 import { DUTIES } from './duties.js';
 import type { DutyDef } from './duties.js';
 import { buildComponents, buildEmbed } from './ui.js';
-import { OFFICER_ROLE_ID } from '../config.js';
+import { OFFICER_ROLE_ID, FACILITY_TEAM_ROLE_ID } from '../config.js';
 
 const DUTY_BY_CUSTOM_ID: Record<string, DutyDef> = Object.fromEntries(
   DUTIES.map((d) => [d.customId, d]),
@@ -70,6 +70,13 @@ export async function handleButton(
 
   const duty = DUTY_BY_CUSTOM_ID[customId];
   if (!duty) return ephemeral('Unknown button.');
+
+  if (
+    duty.key === 'facility_team_liason' &&
+    !body.member?.roles?.includes(FACILITY_TEAM_ROLE_ID)
+  ) {
+    return ephemeral('Only the Facility Team Liason role holder can claim this duty.');
+  }
 
   const current = state[duty.key];
   if (current === userId) {

@@ -3,7 +3,7 @@ import {
   InteractionResponseType,
   InteractionResponseFlags,
 } from 'discord-interactions';
-import { OFFICER_ROLE_ID } from '../config.js';
+import { OFFICER_ROLE_ID, FACILITY_TEAM_ROLE_ID } from '../config.js';
 import { DUTIES } from './duties.js';
 import type { DutyKey } from './duties.js';
 
@@ -42,9 +42,9 @@ type ResponseShape = {
   };
 };
 
-function officer(userId: string) {
+function officer(userId: string, extraRoles: string[] = []) {
   return {
-    member: { user: { id: userId }, roles: [OFFICER_ROLE_ID] },
+    member: { user: { id: userId }, roles: [OFFICER_ROLE_ID, ...extraRoles] },
   };
 }
 
@@ -104,6 +104,39 @@ describe('handleButton - authorization', () => {
   });
 });
 
+describe('handleButton - facility team liason role enforcement', () => {
+  it('rejects FTL claim when officer lacks the Facility Team role', async () => {
+    const res = (await handleButton({
+      data: { custom_id: 'a:ftl' },
+      message: { id: 'm1' },
+      ...officer('u1'),
+    })) as ResponseShape;
+    expect(res.data?.flags).toBe(InteractionResponseFlags.EPHEMERAL);
+    expect(res.data?.content).toMatch(/facility team liason role holder/i);
+    expect(store.get('m1')).toBeUndefined();
+  });
+
+  it('assigns FTL when officer has the Facility Team role', async () => {
+    const res = (await handleButton({
+      data: { custom_id: 'a:ftl' },
+      message: { id: 'm1' },
+      ...officer('u1', [FACILITY_TEAM_ROLE_ID]),
+    })) as ResponseShape;
+    expect(res.type).toBe(InteractionResponseType.UPDATE_MESSAGE);
+    expect(store.get('m1')?.facility_team_liason).toBe('u1');
+  });
+
+  it('releases FTL when the role holder presses again', async () => {
+    store.set('m1', { ...fresh(), facility_team_liason: 'u1' });
+    await handleButton({
+      data: { custom_id: 'a:ftl' },
+      message: { id: 'm1' },
+      ...officer('u1', [FACILITY_TEAM_ROLE_ID]),
+    });
+    expect(store.get('m1')?.facility_team_liason).toBeNull();
+  });
+});
+
 describe('handleButton - duty claim/release', () => {
   it('claims an empty duty and persists state', async () => {
     const res = (await handleButton({
@@ -144,12 +177,12 @@ describe('handleButton - duty claim/release', () => {
       ...officer('u1'),
     });
     await handleButton({
-      data: { custom_id: 'a:ftl' },
+      data: { custom_id: 'a:abo' },
       message: { id: 'm1' },
       ...officer('u1'),
     });
     expect(store.get('m1')?.tankmaster).toBe('u1');
-    expect(store.get('m1')?.facility_team_liason).toBe('u1');
+    expect(store.get('m1')?.ar_base_overseer).toBe('u1');
   });
 
   it('rejects a second weekly duty when user already holds one', async () => {
@@ -169,12 +202,12 @@ describe('handleButton - duty claim/release', () => {
     await handleButton({
       data: { custom_id: 'a:ftl' },
       message: { id: 'm1' },
-      ...officer('u1'),
+      ...officer('u1', [FACILITY_TEAM_ROLE_ID]),
     });
     await handleButton({
       data: { custom_id: 'a:abo' },
       message: { id: 'm1' },
-      ...officer('u1'),
+      ...officer('u1', [FACILITY_TEAM_ROLE_ID]),
     });
     expect(store.get('m1')?.facility_team_liason).toBe('u1');
     expect(store.get('m1')?.ar_base_overseer).toBe('u1');
@@ -199,10 +232,12 @@ describe('handleButton - duty claim/release', () => {
   it('maps every duty custom_id to the correct field', async () => {
     for (const duty of DUTIES) {
       store.clear();
+      const extraRoles =
+        duty.key === 'facility_team_liason' ? [FACILITY_TEAM_ROLE_ID] : [];
       await handleButton({
         data: { custom_id: duty.customId },
         message: { id: 'm1' },
-        ...officer('u1'),
+        ...officer('u1', extraRoles),
       });
       expect(store.get('m1')?.[duty.key]).toBe('u1');
     }
