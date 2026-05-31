@@ -7,7 +7,11 @@ import type { AdministratumState } from './store.js';
 import { DUTIES } from './duties.js';
 import type { DutyDef } from './duties.js';
 import { buildComponents, buildEmbed } from './ui.js';
-import { OFFICER_ROLE_ID, FACILITY_TEAM_ROLE_ID } from '../config.js';
+import {
+  OFFICER_ROLE_ID,
+  FACILITY_TEAM_ROLE_ID,
+  BASE_OVERSEER_ROLE_ID,
+} from '../config.js';
 import { fetchMembersWithRoles } from '../util/discord.js';
 
 const DUTY_BY_CUSTOM_ID: Record<string, DutyDef> = Object.fromEntries(
@@ -47,11 +51,26 @@ async function autoAssignedFtl(
   return candidates[0] ?? null;
 }
 
+async function autoAssignedBaseOverseer(
+  guildId: string | undefined,
+): Promise<string | null> {
+  if (!guildId) return null;
+  const candidates: string[] = await fetchMembersWithRoles(guildId, [
+    BASE_OVERSEER_ROLE_ID,
+  ]);
+  return candidates[0] ?? null;
+}
+
 async function buildSeededState(
   guildId: string | undefined,
 ): Promise<AdministratumState> {
   const state = emptyState();
-  state.facility_team_liason = await autoAssignedFtl(guildId);
+  const [ftl, overseer] = await Promise.all([
+    autoAssignedFtl(guildId),
+    autoAssignedBaseOverseer(guildId),
+  ]);
+  state.facility_team_liason = ftl;
+  state.ar_base_overseer = overseer;
   return state;
 }
 

@@ -21,6 +21,8 @@ export const SHIFT_CHANNEL_ID: string =
 export const FACILITY_TEAM_ROLE_ID: string =
   process.env['FACILITY_TEAM_ROLE_ID'] ?? '1498520759310618665';
 
+export const BASE_OVERSEER_ROLE_ID: string = process.env['BASE_OVERSEER_ROLE_ID'] ?? '1510777689605279825'
+
 export const DISCORD_PUBLIC_KEY: string | undefined = process.env['DISCORD_PUBLIC_KEY'];
 
 export const DISCORD_BOT_TOKEN: string | undefined = process.env['DISCORD_BOT_TOKEN'];
