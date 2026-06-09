@@ -23,6 +23,9 @@ export const FACILITY_TEAM_ROLE_ID: string =
 
 export const BASE_OVERSEER_ROLE_ID: string = process.env['BASE_OVERSEER_ROLE_ID'] ?? '1510777689605279825'
 
+export const PROMO_MEDAL_CHANNEL_ID: string =
+  process.env['PROMO_MEDAL_CHANNEL_ID'] ?? '1020839870291263571';
+
 export const DISCORD_PUBLIC_KEY: string | undefined = process.env['DISCORD_PUBLIC_KEY'];
 
 export const DISCORD_BOT_TOKEN: string | undefined = process.env['DISCORD_BOT_TOKEN'];
