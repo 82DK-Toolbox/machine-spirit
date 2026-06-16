@@ -38,7 +38,7 @@ function buildDescription(state: AdministratumState, includeFooter: boolean): st
 
 export function buildEmbed(state: AdministratumState): Record<string, unknown> {
   return {
-    title: `# Weekly Duty Sign-Up — Week of ${currentWeekLabel()}`,
+    title: `Weekly Duty Sign-Up — Week of ${currentWeekLabel()}`,
     description: buildDescription(state, true),
     color: 0x2b2d31,
   };
