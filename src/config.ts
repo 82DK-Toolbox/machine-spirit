@@ -18,6 +18,9 @@ export const OFFICER_ROLE_ID: string =
 export const SHIFT_CHANNEL_ID: string =
   process.env['SHIFT_CHANNEL_ID'] ?? '1494671599561998486';
 
+export const PROMO_MEDAL_CHANNEL_ID: string =
+  process.env['PROMO_MEDAL_CHANNEL_ID'] ?? '1020839870291263571';
+
 export const FACILITY_TEAM_ROLE_ID: string =
   process.env['FACILITY_TEAM_ROLE_ID'] ?? '1498520759310618665';
 

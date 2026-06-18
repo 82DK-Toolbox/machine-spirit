@@ -174,7 +174,7 @@ aws lambda get-function-configuration --function-name <existing-function> --regi
 Then create the new container Lambda (substitute your values; one line):
 
 ```bash
-aws lambda create-function --function-name <function-name> --package-type Image --code ImageUri=<account-id>.dkr.ecr.<region>.amazonaws.com/<ecr-repo>:latest --role <exec-role-arn> --architectures x86_64 --timeout 10 --memory-size 512 --region <region> --environment "Variables={DISCORD_PUBLIC_KEY=...,DISCORD_APP_ID=...,DISCORD_BOT_TOKEN=...,DYNAMO_TABLE=shift-bot-state,OFFICER_ROLE_ID=...,SHIFT_TIMEZONE=America/New_York}"
+aws lambda create-function --function-name <function-name> --package-type Image --code ImageUri=<account-id>.dkr.ecr.<region>.amazonaws.com/<ecr-repo>:latest --role <exec-role-arn> --architectures x86_64 --timeout 10 --memory-size 512 --region <region> --environment "Variables={DISCORD_PUBLIC_KEY=...,DISCORD_APP_ID=...,DISCORD_BOT_TOKEN=...,DYNAMO_TABLE=shift-bot-state,OFFICER_ROLE_ID=...,SHIFT_TIMEZONE=America/New_York,PROMO_MEDAL_CHANNEL_ID=1020839870291263571}"
 ```
 
 If the role doesn't already have DynamoDB permissions, attach `AmazonDynamoDBFullAccess` (or a scoped policy for just your table) via IAM Console or:
@@ -209,6 +209,38 @@ https://<id>.lambda-url.<region>.on.aws/interactions
 ```
 
 Save. Discord sends a `PING` — a successful save means signature verification works.
+
+### 7. Schedule the weekly "End of Week" promo reminder (one-time)
+
+Besides Discord interactions, the same Lambda also handles a scheduled invocation.
+When invoked with the payload `{"task":"end-of-week-promo"}`, the bot posts an
+"End of Week" reminder into the `promo-medal-suggestions` channel
+(`PROMO_MEDAL_CHANNEL_ID`) prompting people to submit promotions before the week
+ends. We drive this with [EventBridge Scheduler](https://docs.aws.amazon.com/scheduler/latest/UserGuide/what-is-scheduler.html),
+which supports a real timezone (so it stays at noon Eastern across DST).
+
+First create an IAM role EventBridge Scheduler can assume to invoke the Lambda
+(trust principal `scheduler.amazonaws.com`, permission `lambda:InvokeFunction`
+on the function ARN). Then create the schedule — **Sundays at 12:00 PM Eastern**:
+
+```bash
+aws scheduler create-schedule --name machine-spirit-end-of-week-promo \
+  --schedule-expression 'cron(0 12 ? * SUN *)' \
+  --schedule-expression-timezone 'America/New_York' \
+  --flexible-time-window '{"Mode":"OFF"}' \
+  --target '{"Arn":"<lambda-function-arn>","RoleArn":"<scheduler-role-arn>","Input":"{\"task\":\"end-of-week-promo\"}"}' \
+  --region <region>
+```
+
+Test it on demand without waiting for Sunday:
+
+```bash
+aws lambda invoke --function-name <function-name> --payload '{"task":"end-of-week-promo"}' --cli-binary-format raw-in-base64-out --region <region> /dev/stdout
+```
+
+A message should appear in the channel. (EventBridge Scheduler is preferred over a
+classic EventBridge rule here because classic rules are UTC-only and would drift an
+hour across daylight-saving changes.)
 
 ### Updating the deployed function
 

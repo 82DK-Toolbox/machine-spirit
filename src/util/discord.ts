@@ -36,3 +36,25 @@ export async function fetchMembersWithRoles(
   }
   return out;
 }
+
+export async function postChannelMessage(
+  channelId: string,
+  content: string,
+): Promise<void> {
+  const token: string | undefined = DISCORD_BOT_TOKEN;
+  if (!token) {
+    console.warn('DISCORD_BOT_TOKEN missing, cannot post channel message');
+    return;
+  }
+  const res = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bot ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ content, allowed_mentions: { parse: [] } }),
+  });
+  if (!res.ok) {
+    console.warn('failed to post channel message', { status: res.status });
+  }
+}
