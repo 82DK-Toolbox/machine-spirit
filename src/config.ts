@@ -4,7 +4,7 @@ export interface TimeOfDay {
 }
 
 export interface ShiftDef {
-  id: 1 | 2 | 3;
+  id: 1 | 2 | 3 | 4;
   label: string;
   start: TimeOfDay;
   end: TimeOfDay | null;
@@ -55,8 +55,14 @@ export const SHIFTS: readonly ShiftDef[] = [
   },
   {
     id: 3,
-    label: '3:30 Hours after OP Start / Op end',
+    label: '3:30 Hours after OP Start',
     start: { hour: 16, minute: 30 },
+    end: { hour: 18, minute: 30 },
+  },
+  {
+    id: 4,
+    label: '5:30 Hours after OP Start / Op end',
+    start: { hour: 18, minute: 30 },
     end: null,
   },
 ];
