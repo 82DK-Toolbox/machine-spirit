@@ -17,6 +17,8 @@ const SLOT_MAP: Record<string, SlotKey> = {
   's:2:s': 'shift2_secondary',
   's:3:m': 'shift3_main',
   's:3:s': 'shift3_secondary',
+  's:4:m': 'shift4_main',
+  's:4:s': 'shift4_secondary',
   ts: 'tank_squire',
 };
 

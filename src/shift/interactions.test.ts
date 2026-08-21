@@ -12,6 +12,8 @@ interface MockShiftState {
   shift2_secondary: string | null;
   shift3_main: string | null;
   shift3_secondary: string | null;
+  shift4_main: string | null;
+  shift4_secondary: string | null;
   tank_squire: string | null;
   reserve: string[];
 }
@@ -26,6 +28,8 @@ function fresh(): MockShiftState {
     shift2_secondary: null,
     shift3_main: null,
     shift3_secondary: null,
+    shift4_main: null,
+    shift4_secondary: null,
     tank_squire: null,
     reserve: [],
   };
@@ -179,6 +183,8 @@ describe('handleButton - slot claim/release', () => {
       ['s:2:s', 'shift2_secondary'],
       ['s:3:m', 'shift3_main'],
       ['s:3:s', 'shift3_secondary'],
+      ['s:4:m', 'shift4_main'],
+      ['s:4:s', 'shift4_secondary'],
       ['ts', 'tank_squire'],
     ];
     for (const [customId, field] of pairs) {
@@ -252,6 +258,32 @@ describe('handleButton - reserve/slot mutual exclusion', () => {
     expect(res.data?.flags).toBe(InteractionResponseFlags.EPHEMERAL);
     expect(res.data?.content).toMatch(/already signed up/i);
     expect(store.get('m1')?.reserve).toEqual([]);
+  });
+
+  it('rejects reserve signup when user holds a shift 4 slot', async () => {
+    store.set('m1', { ...fresh(), shift4_main: 'u1' });
+    const res = (await handleButton({
+      data: { custom_id: 'r' },
+      message: { id: 'm1' },
+      ...officer('u1'),
+    })) as ResponseShape;
+    expect(res.data?.flags).toBe(InteractionResponseFlags.EPHEMERAL);
+    expect(res.data?.content).toMatch(/already signed up/i);
+    expect(store.get('m1')?.reserve).toEqual([]);
+    expect(store.get('m1')?.shift4_main).toBe('u1');
+  });
+
+  it('rejects shift 4 claim when user is already in reserves', async () => {
+    store.set('m1', { ...fresh(), reserve: ['u1'] });
+    const res = (await handleButton({
+      data: { custom_id: 's:4:s' },
+      message: { id: 'm1' },
+      ...officer('u1'),
+    })) as ResponseShape;
+    expect(res.data?.flags).toBe(InteractionResponseFlags.EPHEMERAL);
+    expect(res.data?.content).toMatch(/in reserves/i);
+    expect(store.get('m1')?.shift4_secondary).toBeNull();
+    expect(store.get('m1')?.reserve).toEqual(['u1']);
   });
 
   it('rejects slot claim when user is already in reserves', async () => {

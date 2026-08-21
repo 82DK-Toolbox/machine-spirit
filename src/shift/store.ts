@@ -13,6 +13,8 @@ export interface ShiftState {
   shift2_secondary: string | null;
   shift3_main: string | null;
   shift3_secondary: string | null;
+  shift4_main: string | null;
+  shift4_secondary: string | null;
   tank_squire: string | null;
   reserve: string[];
 }
@@ -32,6 +34,8 @@ export function emptyState(): ShiftState {
     shift2_secondary: null,
     shift3_main: null,
     shift3_secondary: null,
+    shift4_main: null,
+    shift4_secondary: null,
     tank_squire: null,
     reserve: [],
   };
@@ -44,7 +48,10 @@ export async function getState(messageId: string): Promise<ShiftState> {
       Key: { messageId },
     }),
   );
-  return (res.Item?.['state'] as ShiftState | undefined) ?? emptyState();
+  // Spread over a fresh state so items written before a slot existed come back
+  // with that slot as null rather than undefined.
+  const stored = res.Item?.['state'] as Partial<ShiftState> | undefined;
+  return { ...emptyState(), ...stored };
 }
 
 export async function setState(
