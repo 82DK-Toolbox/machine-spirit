@@ -56,6 +56,7 @@ export function buildPlainText(state: ShiftState): string {
     buildDescription(state, false),
     '',
     '_Please indicate your attendance with the presented numbers 1\uFE0F\u20E3 2\uFE0F\u20E3 3\uFE0F\u20E3 4\uFE0F\u20E3_',
+    'If you are interested in Tank Maiding please react with :machine_spirit:',
   ].join('\n');
 }
 

@@ -62,7 +62,7 @@ describe('buildComponents - slot coverage', () => {
     expect(ids).toContain('s:4:s');
   });
 
-  it('keeps the reserve, tank squire, and finalize buttons', () => {
+  it('keeps the reserve, tank maid, and finalize buttons', () => {
     const ids = customIds(buildComponents() as TestComponent[]);
     expect(ids).toEqual(expect.arrayContaining(['r', 'ts', 'fin']));
   });
